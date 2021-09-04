@@ -43,7 +43,7 @@ let terminal = new Terminal(
 terminal.print("Hello there !", 500)
 ```
 
-##Todo list
+## Todo list
 - add a system for directories, allowing you to navigate through virtual files, and even open or execute them
 - add an auth system, which allows for the use of usernames and passwords, which also means adding permissions so they can be connected with the user logged in
 - fix the god damn delay system. a feature that i am trying my best to fix until now
@@ -51,6 +51,6 @@ terminal.print("Hello there !", 500)
 ## Contribution
 this is the first project of mine that'd be released on the internet, so even the smallest bits of support will be so appreciated by me. i am not a dedicated programmer since i am in my last year before graduation, but i'll try my best to give it my all to make this project better and better as time marches.
 
-##License
+## License
 
 [MIT](LICENSE)
