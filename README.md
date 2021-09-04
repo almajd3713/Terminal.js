@@ -1,7 +1,7 @@
 
 # Terminal.js
 
-Terminal.js is a small library that allows you to build a fully functional terminal. features like commands, working with directories and authorization are already on the work.
+Terminal.js is a small library that allows you to build a simple terminal. features like commands, working with directories and authorization are already on the work.
 
 #### QnA
 `why there isn't much in this project yet ?`
