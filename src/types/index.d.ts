@@ -28,3 +28,8 @@ export interface AnswerInterface {
   answer: string
   action: Function
 }
+export interface Path {
+  [path: string]: string | Path
+}
+
+export type InfiniteArray<T> = Array<InfiniteArray<T>|T>

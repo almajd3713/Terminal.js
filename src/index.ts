@@ -1,5 +1,5 @@
 
-import { AnswerInterface, EventsInterface, TerminalInterface } from "./types"
+import { AnswerInterface, EventsInterface, InfiniteArray, Path, TerminalInterface } from "./types"
 import { util } from "./util.js"
 
 export default class Terminal {
@@ -9,6 +9,9 @@ export default class Terminal {
     sleep: util.sleep
   }
   private _privateVars = {
+    tree: {} as Path,
+    treeArr: [] as InfiniteArray<string>,
+    currentDir: [] as string[]
   }
   private _events: EventsInterface = {
     default: {
@@ -23,7 +26,7 @@ export default class Terminal {
     this._defaultStyle()
     if (props.style) (this.target.style as typeof props.style) = props.style
   }
-  private async _eventTriggerHandler(event: typeof this._events[string]) {
+  private _eventTriggerHandler(event: typeof this._events[string]) {
     if (event && event.actions) event.actions[0]()
   }
   private _defaultStyle() {
@@ -46,7 +49,7 @@ export default class Terminal {
   async start() {
     if (this._defaultActions) this._defaultActions[0]()
   }
-  //! -----------------------------------------
+  //! ------------------------------------------------------------
 
   //! COMMON METHODS
   print(message:string) {
@@ -71,7 +74,7 @@ export default class Terminal {
           else console.log("No function is provided")
         }
         else if(val.match(/\S/g)) {
-          this.print("message does not match expected answers")
+          this.print("prompt does not match expected answers")
           this.input(el.textContent, answers)
         } else {
           this.input(el.textContent, answers)
@@ -79,7 +82,52 @@ export default class Terminal {
       })
     })
   }
+  //! ------------------------------------------------------------
 
-
+  //! DIRECTORY MANAGEMENT
+  cmd(commands: AnswerInterface[], pre?: string) {
+    if(!pre) pre = ">"
+    let el = util.genElement("input", { textContent: `${this.prefix}${pre}`})
+    this.target.appendChild(el)
+    this._cmdListener(el as HTMLFormElement, commands, pre)
+  }
+  private _cmdListener(el: HTMLFormElement, commands: AnswerInterface[], pre: string) {
+    let input = el.querySelector("input")
+    input.focus()
+    el.addEventListener("submit", e => {
+      e.preventDefault()
+      input.disabled = true
+      let val = input.value
+      if (commands.length) commands.forEach(ans => {
+        let command = val.split("/")[0]
+        let args = val.split("/").shift()
+        if (command === ans.answer) {
+          if (ans.action) ans.action(args)
+          else console.log("No function is provided")
+        }
+        else if (val.match(/^\s*$/g)) {
+          this.cmd(commands, pre)
+        } else {
+          this.print("this command doesn't exist!")
+          this.cmd(commands, pre)
+        }
+      })
+    })
+  }
+  setPathTree(path: Path) {
+    this._privateVars.tree = path
+    this._privateVars.treeArr = util.pathGen(path)
+  }
+  setPath(path: string) {
+    let newPath = util.pathReader(path)
+    let desiredPath = this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, newPath))
+    if(desiredPath) {
+      this._privateVars.currentDir = desiredPath as string[]
+    } else throw Error("a directory that was inserted doesn't exist in tree")
+  }
+  private get prefix() {
+      return `${this._privateVars.currentDir[0]}:/${this._privateVars.currentDir.slice(1).join("/") }`
+  }
+  //! ------------------------------------------------------------
 }
 

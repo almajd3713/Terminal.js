@@ -1,8 +1,8 @@
-import { CreateNodeProps, ElementTypes } from "./types"
+import { CreateNodeProps, ElementTypes, InfiniteArray, Path } from "./types"
 
 
 export const util = {
-createNode: (props: CreateNodeProps): HTMLElement => {
+createNode(props: CreateNodeProps): HTMLElement {
   let node = document.createElement(props.tag || "div")
   if (props.className) {
     if (Array.isArray(props.className)) props.className.forEach(classN => node.classList.add(classN))
@@ -63,7 +63,7 @@ defaultStyleGen: (id:string) => util.createNode({tag: "style", textContent: `
 }),
 
 sleep: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
-objectListener: (object: Object, action: (value: string) => void) => {
+objectListener(object: Object, action: (value: string) => void) {
   const handler = {
     get: (target: typeof object, key: keyof typeof object) => {
       if(typeof target[key] === "object" && target[key] !== null && !Array.isArray(target[key])) {
@@ -79,7 +79,7 @@ objectListener: (object: Object, action: (value: string) => void) => {
   }
   return new Proxy(object, handler)
 },
-genElement: (type: ElementTypes, props: CreateNodeProps) => {
+genElement(type: ElementTypes, props: CreateNodeProps) {
   switch (type) {
     case "print":
       return util.createNode({ tag: "p", textContent: props.textContent})
@@ -97,5 +97,34 @@ genElement: (type: ElementTypes, props: CreateNodeProps) => {
         }
       })
   }
+},
+pathReader(path: string) {
+  let newPath = path.replace(/\s/g, "").split(/[\\//:]+/g)
+  return newPath
+},
+compareArrayByIndex(arr1: Array<any>, arr2: Array<any>) {
+  for(let i = 0; i < arr2.length; i++) {
+    if(!arr1[i] || !arr2[i] || arr1[i] !== arr2[i]) return false
+  }
+  return true
+},
+pathGen(tree: Path) {
+  let treeArr: InfiniteArray<string> = []
+  let arrGen = (obj: Path, lastArr: string[]) => {
+    for(const [key, value] of Object.entries(obj)) { 
+      if(typeof value === "object") {
+        lastArr.push(key)
+        treeArr.push(lastArr.slice())
+        arrGen(value, lastArr)
+      }
+      else {
+        lastArr.push(value)
+        treeArr.push(lastArr.slice())
+      }
+      lastArr.pop()
+    }
+  }
+  arrGen(tree, [])
+  return treeArr
 }
 }
