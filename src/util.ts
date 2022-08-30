@@ -1,4 +1,4 @@
-import { CreateNodeProps } from "./types"
+import { CreateNodeProps, ElementTypes } from "./types"
 
 
 export const util = {
@@ -31,23 +31,24 @@ createNode: (props: CreateNodeProps): HTMLElement => {
   return node
 },
 
-defaultStyleGen: () => util.createNode({tag: "style", textContent: `<style>
-      #container {
+defaultStyleGen: (id:string) => util.createNode({tag: "style", textContent: `
+      #${id} {
+        box-sizing: border-box;
         width: 100%;
-        min-height: 100%;
-        padding: 100%;
+        height: 100%;
+        padding: 1rem;
         color: #109e2a;
         background-color: black;
         font-size: 1.5rem;
         font-family: monospace;
       }
 
-      #container p, #container form {
+      #${id} p, #container form {
         margin: 0;
         margin-bottom: 0.5rem
       }
 
-      #container input {
+      #${id} input {
         background-color: inherit;
         width: 50%;
         outline: none;
@@ -55,8 +56,9 @@ defaultStyleGen: () => util.createNode({tag: "style", textContent: `<style>
         font-size: inherit;
         color: inherit;
         font-family: inherit;
+        margin-left: 1rem;
       }
-    </style>`,
+    `,
     attributes: [["data-terminal-style", "true"]]
 }),
 
@@ -76,5 +78,24 @@ objectListener: (object: Object, action: (value: string) => void) => {
     }
   }
   return new Proxy(object, handler)
+},
+genElement: (type: ElementTypes, props: CreateNodeProps) => {
+  switch (type) {
+    case "print":
+      return util.createNode({ tag: "p", textContent: props.textContent})
+  
+    case "input":
+      return util.createNode({
+        tag: "form",
+        subNodes: {
+          tag: "p",
+          textContent: props.textContent,
+          subNodes: {
+            tag: "input",
+            attributes: [["type", "text"]]
+          }
+        }
+      })
+  }
 }
 }

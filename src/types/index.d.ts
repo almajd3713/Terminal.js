@@ -21,3 +21,10 @@ export interface CreateNodeProps {
 }
 
 export interface EventsInterface { [T: string]: { pointer: number, actions: Function[] } }
+
+export type ElementTypes = "print" | "input"
+
+export interface AnswerInterface {
+  answer: string
+  action: Function
+}

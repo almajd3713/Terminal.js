@@ -4,18 +4,24 @@ let terminal = new Terminal({
   target: document.getElementById("root")
 })
 terminal.createEvents("bruh", async (helper, next) => {
-  await helper.sleep(1000)
-  console.log("aye")
-  await helper.sleep(1500)
-  console.log("LLL")
-  await helper.sleep(2000)
+  // await helper.sleep(2000)
+  // terminal.print("Hello there !")
+  // await helper.sleep(1500)
+  // terminal.print("AAA")
+  await helper.sleep(500)
   next()
 })
 
-terminal.createEvents("bruh", async (helper) => {
-  console.log("holy shit am from another function !")
-  await helper.sleep(1000)
+terminal.createEvents("bruh", async (helper, next) => {
+  terminal.input("Aloo", [
+    {answer: "Aa", action: () => terminal.trigger("floppa")}
+  ])
 })
+
+terminal.createEvents("floppa", (helper, next) => {
+  console.log("Bruh")
+})
+
 
 terminal.trigger("bruh")
 
