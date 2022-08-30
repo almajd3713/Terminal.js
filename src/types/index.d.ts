@@ -20,4 +20,4 @@ export interface CreateNodeProps {
   style?: Partial<CSSStyleDeclaration>
 }
 
-export interface EventsInterface { [T: string]: { is: boolean, actions: Function[] } }
+export interface EventsInterface { [T: string]: { pointer: number, actions: Function[] } }

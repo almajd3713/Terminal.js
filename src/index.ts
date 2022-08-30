@@ -1,59 +1,48 @@
+
 import { EventsInterface, TerminalInterface } from "./types"
 import { util } from "./util.js"
 
-
-class Terminal {
+export default class Terminal {
   createEventUtil = {
-    sleep: util.sleep,
+    sleep: util.sleep
   }
   private _privateVars = {
   }
-  private _events: EventsInterface = util.objectListener({
+  private _events: EventsInterface = {
     default: {
-      is: true,
+      pointer: 0,
       actions: []
     }
-  }, (event) => this._eventTriggerHandler(event)) as EventsInterface
-  private _defaultActions = this._events.default.actions
+  }
+  private _defaultActions = this._events["default"].actions
   target: HTMLElement
   constructor(props: TerminalInterface) {
-    this.target= props.target
+    this.target = props.target
     this._defaultStyle()
-    if(props.style) (this.target.style as typeof props.style) = props.style
+    if (props.style) (this.target.style as typeof props.style) = props.style
   }
-  private _eventTriggerHandler(event: typeof this._events[string]) {
-    console.log(event)
+  private async _eventTriggerHandler(event: typeof this._events[string]) {
+    if (event && event.actions) event.actions[0]()
   }
   private _defaultStyle() {
     if (!document.querySelector("[data-terminal-style")) document.querySelector("head").appendChild(util.defaultStyleGen())
   }
-  async createEvent(when: string, action: (util:typeof this.createEventUtil) => void) {
-    if(!this._events[when]) this._events[when] = {
-      is: false,
+  createEvents(when: string, action: (util: typeof this.createEventUtil, next: Function) => void) {
+    if (!this._events[when]) this._events[when] = {
+      pointer: 0,
       actions: []
     }
-    this._events[when].actions.push(async () => {
-      await action(this.createEventUtil)
+    this._events[when].pointer += 1
+    let pointer = this._events[when].pointer
+    this._events[when].actions.push(() => {
+      action(this.createEventUtil, (this._events[when].actions[pointer] as typeof action))
     })
   }
   trigger(event: string) {
-    if(this._events[event]) this._events[event].is = true
+    this._eventTriggerHandler(this._events[event])
   }
   async start() {
-    if (this._defaultActions.length) this._defaultActions.forEach(action => action(this.createEventUtil))
+    if (this._defaultActions) this._defaultActions[0]()
   }
 }
 
-let terminal = new Terminal({
-  target: document.getElementById("root")
-})
-terminal.createEvent("bruh", (helper) => {
-  console.log("aye")
-  helper.sleep(1500)
-  console.log("Aloo")
-})
-
-terminal.trigger("bruh")
-
-// @ts-ignore
-window.terminal = terminal

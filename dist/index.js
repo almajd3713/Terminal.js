@@ -1,69 +1,48 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { util } from "./util.js";
-class Terminal {
+export default class Terminal {
     constructor(props) {
         this.createEventUtil = {
-            sleep: util.sleep,
+            sleep: util.sleep
         };
         this._privateVars = {};
-        this._events = util.objectListener({
+        this._events = {
             default: {
-                is: true,
+                pointer: 0,
                 actions: []
             }
-        }, (event) => this._eventTriggerHandler(event));
-        this._defaultActions = this._events.default.actions;
+        };
+        this._defaultActions = this._events["default"].actions;
         this.target = props.target;
         this._defaultStyle();
         if (props.style)
             this.target.style = props.style;
     }
-    _eventTriggerHandler(event) {
-        console.log(event);
+    async _eventTriggerHandler(event) {
+        if (event && event.actions)
+            event.actions[0]();
     }
     _defaultStyle() {
         if (!document.querySelector("[data-terminal-style"))
             document.querySelector("head").appendChild(util.defaultStyleGen());
     }
-    createEvent(when, action) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this._events[when])
-                this._events[when] = {
-                    is: false,
-                    actions: []
-                };
-            this._events[when].actions.push(() => __awaiter(this, void 0, void 0, function* () {
-                yield action(this.createEventUtil);
-            }));
+    createEvents(when, action) {
+        if (!this._events[when])
+            this._events[when] = {
+                pointer: 0,
+                actions: []
+            };
+        this._events[when].pointer += 1;
+        let pointer = this._events[when].pointer;
+        this._events[when].actions.push(() => {
+            action(this.createEventUtil, this._events[when].actions[pointer]);
         });
     }
     trigger(event) {
-        if (this._events[event])
-            this._events[event].is = true;
+        this._eventTriggerHandler(this._events[event]);
     }
-    start() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this._defaultActions.length)
-                this._defaultActions.forEach(action => action(this.createEventUtil));
-        });
+    async start() {
+        if (this._defaultActions)
+            this._defaultActions[0]();
     }
 }
-let terminal = new Terminal({
-    target: document.getElementById("root")
-});
-terminal.createEvent("bruh", (helper) => {
-    console.log("aye");
-    helper.sleep(1500);
-    console.log("Aloo");
-});
-terminal.trigger("bruh");
-window.terminal = terminal;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7O0FBQ0EsT0FBTyxFQUFFLElBQUksRUFBRSxNQUFNLFdBQVcsQ0FBQTtBQUdoQyxNQUFNLFFBQVE7SUFjWixZQUFZLEtBQXdCO1FBYnBDLG9CQUFlLEdBQUc7WUFDaEIsS0FBSyxFQUFFLElBQUksQ0FBQyxLQUFLO1NBQ2xCLENBQUE7UUFDTyxpQkFBWSxHQUFHLEVBQ3RCLENBQUE7UUFDTyxZQUFPLEdBQW9CLElBQUksQ0FBQyxjQUFjLENBQUM7WUFDckQsT0FBTyxFQUFFO2dCQUNQLEVBQUUsRUFBRSxJQUFJO2dCQUNSLE9BQU8sRUFBRSxFQUFFO2FBQ1o7U0FDRixFQUFFLENBQUMsS0FBSyxFQUFFLEVBQUUsQ0FBQyxJQUFJLENBQUMsb0JBQW9CLENBQUMsS0FBSyxDQUFDLENBQW9CLENBQUE7UUFDMUQsb0JBQWUsR0FBRyxJQUFJLENBQUMsT0FBTyxDQUFDLE9BQU8sQ0FBQyxPQUFPLENBQUE7UUFHcEQsSUFBSSxDQUFDLE1BQU0sR0FBRSxLQUFLLENBQUMsTUFBTSxDQUFBO1FBQ3pCLElBQUksQ0FBQyxhQUFhLEVBQUUsQ0FBQTtRQUNwQixJQUFHLEtBQUssQ0FBQyxLQUFLO1lBQUcsSUFBSSxDQUFDLE1BQU0sQ0FBQyxLQUE0QixHQUFHLEtBQUssQ0FBQyxLQUFLLENBQUE7SUFDekUsQ0FBQztJQUNPLG9CQUFvQixDQUFDLEtBQWtDO1FBQzdELE9BQU8sQ0FBQyxHQUFHLENBQUMsS0FBSyxDQUFDLENBQUE7SUFDcEIsQ0FBQztJQUNPLGFBQWE7UUFDbkIsSUFBSSxDQUFDLFFBQVEsQ0FBQyxhQUFhLENBQUMsc0JBQXNCLENBQUM7WUFBRSxRQUFRLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxDQUFDLFdBQVcsQ0FBQyxJQUFJLENBQUMsZUFBZSxFQUFFLENBQUMsQ0FBQTtJQUN6SCxDQUFDO0lBQ0ssV0FBVyxDQUFDLElBQVksRUFBRSxNQUFrRDs7WUFDaEYsSUFBRyxDQUFDLElBQUksQ0FBQyxPQUFPLENBQUMsSUFBSSxDQUFDO2dCQUFFLElBQUksQ0FBQyxPQUFPLENBQUMsSUFBSSxDQUFDLEdBQUc7b0JBQzNDLEVBQUUsRUFBRSxLQUFLO29CQUNULE9BQU8sRUFBRSxFQUFFO2lCQUNaLENBQUE7WUFDRCxJQUFJLENBQUMsT0FBTyxDQUFDLElBQUksQ0FBQyxDQUFDLE9BQU8sQ0FBQyxJQUFJLENBQUMsR0FBUyxFQUFFO2dCQUN6QyxNQUFNLE1BQU0sQ0FBQyxJQUFJLENBQUMsZUFBZSxDQUFDLENBQUE7WUFDcEMsQ0FBQyxDQUFBLENBQUMsQ0FBQTtRQUNKLENBQUM7S0FBQTtJQUNELE9BQU8sQ0FBQyxLQUFhO1FBQ25CLElBQUcsSUFBSSxDQUFDLE9BQU8sQ0FBQyxLQUFLLENBQUM7WUFBRSxJQUFJLENBQUMsT0FBTyxDQUFDLEtBQUssQ0FBQyxDQUFDLEVBQUUsR0FBRyxJQUFJLENBQUE7SUFDdkQsQ0FBQztJQUNLLEtBQUs7O1lBQ1QsSUFBSSxJQUFJLENBQUMsZUFBZSxDQUFDLE1BQU07Z0JBQUUsSUFBSSxDQUFDLGVBQWUsQ0FBQyxPQUFPLENBQUMsTUFBTSxDQUFDLEVBQUUsQ0FBQyxNQUFNLENBQUMsSUFBSSxDQUFDLGVBQWUsQ0FBQyxDQUFDLENBQUE7UUFDdkcsQ0FBQztLQUFBO0NBQ0Y7QUFFRCxJQUFJLFFBQVEsR0FBRyxJQUFJLFFBQVEsQ0FBQztJQUMxQixNQUFNLEVBQUUsUUFBUSxDQUFDLGNBQWMsQ0FBQyxNQUFNLENBQUM7Q0FDeEMsQ0FBQyxDQUFBO0FBQ0YsUUFBUSxDQUFDLFdBQVcsQ0FBQyxNQUFNLEVBQUUsQ0FBQyxNQUFNLEVBQUUsRUFBRTtJQUN0QyxPQUFPLENBQUMsR0FBRyxDQUFDLEtBQUssQ0FBQyxDQUFBO0lBQ2xCLE1BQU0sQ0FBQyxLQUFLLENBQUMsSUFBSSxDQUFDLENBQUE7SUFDbEIsT0FBTyxDQUFDLEdBQUcsQ0FBQyxNQUFNLENBQUMsQ0FBQTtBQUNyQixDQUFDLENBQUMsQ0FBQTtBQUVGLFFBQVEsQ0FBQyxPQUFPLENBQUMsTUFBTSxDQUFDLENBQUE7QUFHeEIsTUFBTSxDQUFDLFFBQVEsR0FBRyxRQUFRLENBQUEifQ==
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBRUEsT0FBTyxFQUFFLElBQUksRUFBRSxNQUFNLFdBQVcsQ0FBQTtBQUVoQyxNQUFNLENBQUMsT0FBTyxPQUFPLFFBQVE7SUFjM0IsWUFBWSxLQUF3QjtRQWJwQyxvQkFBZSxHQUFHO1lBQ2hCLEtBQUssRUFBRSxJQUFJLENBQUMsS0FBSztTQUNsQixDQUFBO1FBQ08saUJBQVksR0FBRyxFQUN0QixDQUFBO1FBQ08sWUFBTyxHQUFvQjtZQUNqQyxPQUFPLEVBQUU7Z0JBQ1AsT0FBTyxFQUFFLENBQUM7Z0JBQ1YsT0FBTyxFQUFFLEVBQUU7YUFDWjtTQUNGLENBQUE7UUFDTyxvQkFBZSxHQUFHLElBQUksQ0FBQyxPQUFPLENBQUMsU0FBUyxDQUFDLENBQUMsT0FBTyxDQUFBO1FBR3ZELElBQUksQ0FBQyxNQUFNLEdBQUcsS0FBSyxDQUFDLE1BQU0sQ0FBQTtRQUMxQixJQUFJLENBQUMsYUFBYSxFQUFFLENBQUE7UUFDcEIsSUFBSSxLQUFLLENBQUMsS0FBSztZQUFHLElBQUksQ0FBQyxNQUFNLENBQUMsS0FBNEIsR0FBRyxLQUFLLENBQUMsS0FBSyxDQUFBO0lBQzFFLENBQUM7SUFDTyxLQUFLLENBQUMsb0JBQW9CLENBQUMsS0FBa0M7UUFDbkUsSUFBSSxLQUFLLElBQUksS0FBSyxDQUFDLE9BQU87WUFBRSxLQUFLLENBQUMsT0FBTyxDQUFDLENBQUMsQ0FBQyxFQUFFLENBQUE7SUFDaEQsQ0FBQztJQUNPLGFBQWE7UUFDbkIsSUFBSSxDQUFDLFFBQVEsQ0FBQyxhQUFhLENBQUMsc0JBQXNCLENBQUM7WUFBRSxRQUFRLENBQUMsYUFBYSxDQUFDLE1BQU0sQ0FBQyxDQUFDLFdBQVcsQ0FBQyxJQUFJLENBQUMsZUFBZSxFQUFFLENBQUMsQ0FBQTtJQUN6SCxDQUFDO0lBQ0QsWUFBWSxDQUFDLElBQVksRUFBRSxNQUFtRTtRQUM1RixJQUFJLENBQUMsSUFBSSxDQUFDLE9BQU8sQ0FBQyxJQUFJLENBQUM7WUFBRSxJQUFJLENBQUMsT0FBTyxDQUFDLElBQUksQ0FBQyxHQUFHO2dCQUM1QyxPQUFPLEVBQUUsQ0FBQztnQkFDVixPQUFPLEVBQUUsRUFBRTthQUNaLENBQUE7UUFDRCxJQUFJLENBQUMsT0FBTyxDQUFDLElBQUksQ0FBQyxDQUFDLE9BQU8sSUFBSSxDQUFDLENBQUE7UUFDL0IsSUFBSSxPQUFPLEdBQUcsSUFBSSxDQUFDLE9BQU8sQ0FBQyxJQUFJLENBQUMsQ0FBQyxPQUFPLENBQUE7UUFDeEMsSUFBSSxDQUFDLE9BQU8sQ0FBQyxJQUFJLENBQUMsQ0FBQyxPQUFPLENBQUMsSUFBSSxDQUFDLEdBQUcsRUFBRTtZQUNuQyxNQUFNLENBQUMsSUFBSSxDQUFDLGVBQWUsRUFBRyxJQUFJLENBQUMsT0FBTyxDQUFDLElBQUksQ0FBQyxDQUFDLE9BQU8sQ0FBQyxPQUFPLENBQW1CLENBQUMsQ0FBQTtRQUN0RixDQUFDLENBQUMsQ0FBQTtJQUNKLENBQUM7SUFDRCxPQUFPLENBQUMsS0FBYTtRQUNuQixJQUFJLENBQUMsb0JBQW9CLENBQUMsSUFBSSxDQUFDLE9BQU8sQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFBO0lBQ2hELENBQUM7SUFDRCxLQUFLLENBQUMsS0FBSztRQUNULElBQUksSUFBSSxDQUFDLGVBQWU7WUFBRSxJQUFJLENBQUMsZUFBZSxDQUFDLENBQUMsQ0FBQyxFQUFFLENBQUE7SUFDckQsQ0FBQztDQUNGIn0=

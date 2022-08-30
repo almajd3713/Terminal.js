@@ -60,9 +60,7 @@ defaultStyleGen: () => util.createNode({tag: "style", textContent: `<style>
     attributes: [["data-terminal-style", "true"]]
 }),
 
-sleep: async(time: number) => {
-  return new Promise(resolve => setTimeout(resolve, time))
-},
+sleep: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
 objectListener: (object: Object, action: (value: string) => void) => {
   const handler = {
     get: (target: typeof object, key: keyof typeof object) => {
