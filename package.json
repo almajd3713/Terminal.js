@@ -1,0 +1,23 @@
+{
+  "name": "terminal",
+  "version": "1.0.0",
+  "description": "Terminal.js is a small library that allows you to build a simple terminal. features like commands, working with directories and authorization are already on the work.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/almajd3713/Terminal.js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/almajd3713/Terminal.js/issues"
+  },
+  "homepage": "https://github.com/almajd3713/Terminal.js#readme",
+  "devDependencies": {
+    "typescript": "^4.8.2"
+  }
+}
