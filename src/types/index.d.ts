@@ -26,7 +26,7 @@ export type ElementTypes = "print" | "input"
 
 export interface AnswerInterface {
   answer: string
-  action: Function
+  action: (args?: any | any[]) => boolean | void
 }
 export interface Path {
   [path: string]: string | Path

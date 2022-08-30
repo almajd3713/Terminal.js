@@ -58,6 +58,9 @@ defaultStyleGen: (id:string) => util.createNode({tag: "style", textContent: `
         font-family: inherit;
         margin-left: 1rem;
       }
+      #${id} input.isFocused {
+        border-bottom: 1px solid #109e2a
+      }
     `,
     attributes: [["data-terminal-style", "true"]]
 }),

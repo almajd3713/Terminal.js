@@ -30,14 +30,9 @@ terminal.setPathTree({
     }
 })
 terminal.setPath("D:/mission2")
-
+terminal.enableDefaultCommands()
 terminal.createEvents("bruh", async (helper, next) => {
-  terminal.cmd([
-    {
-      answer: "A",
-      action: () => console.log("Bruh")
-    }
-  ], ">")
+  terminal.cmd(">")
 })
 
 terminal.createEvents("floppa", (helper, next) => {

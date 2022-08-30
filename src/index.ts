@@ -11,8 +11,10 @@ export default class Terminal {
   private _privateVars = {
     tree: {} as Path,
     treeArr: [] as InfiniteArray<string>,
-    currentDir: [] as string[]
+    currentDir: [] as string[],
+    defaultCommandsEnabled: false
   }
+  private _commands: AnswerInterface[] = []
   private _events: EventsInterface = {
     default: {
       pointer: 0,
@@ -64,9 +66,11 @@ export default class Terminal {
   private _inputListener(el: HTMLFormElement, answers: AnswerInterface[]) {
     let input = el.querySelector("input")
     input.focus()
+    input.classList.add("isFocused")
     el.addEventListener("submit", e => {
       e.preventDefault()
       input.disabled = true
+      input.classList.remove("isFocused")
       if(answers.length) answers.forEach(ans => {
         let val = input.value
         if(val === ans.answer) {
@@ -85,33 +89,42 @@ export default class Terminal {
   //! ------------------------------------------------------------
 
   //! DIRECTORY MANAGEMENT
-  cmd(commands: AnswerInterface[], pre?: string) {
+  cmd(pre?: string) {
     if(!pre) pre = ">"
     let el = util.genElement("input", { textContent: `${this.prefix}${pre}`})
     this.target.appendChild(el)
-    this._cmdListener(el as HTMLFormElement, commands, pre)
+    this._cmdListener(el as HTMLFormElement, pre)
   }
-  private _cmdListener(el: HTMLFormElement, commands: AnswerInterface[], pre: string) {
+  private _cmdListener(el: HTMLFormElement, pre: string) {
     let input = el.querySelector("input")
     input.focus()
+    input.classList.add("isFocused")
     el.addEventListener("submit", e => {
       e.preventDefault()
       input.disabled = true
+      input.classList.remove("isFocused")
       let val = input.value
-      if (commands.length) commands.forEach(ans => {
-        let command = val.split("/")[0]
-        let args = val.split("/").shift()
-        if (command === ans.answer) {
-          if (ans.action) ans.action(args)
-          else console.log("No function is provided")
+      if(this._commands.length) {
+        let command = val.split(/(\s+)/g)[0]
+        let args = val.split(/\s+/g).slice(1)
+        let desiredCommand = this._commands.find(com => com.answer === command)
+        if(desiredCommand) {
+          let doCmd = desiredCommand.action(args)
+          if(doCmd) this.cmd(pre)
         }
         else if (val.match(/^\s*$/g)) {
-          this.cmd(commands, pre)
-        } else {
-          this.print("this command doesn't exist!")
-          this.cmd(commands, pre)
+          this.cmd(pre)
+          return;
         }
-      })
+        else {
+          this.print("this command doesn't exist!")
+          this.cmd(pre)
+        }
+      }
+      else {
+        this.print("no commands exist !")
+        this.cmd(pre)
+      }
     })
   }
   setPathTree(path: Path) {
@@ -126,8 +139,39 @@ export default class Terminal {
     } else throw Error("a directory that was inserted doesn't exist in tree")
   }
   private get prefix() {
-      return `${this._privateVars.currentDir[0]}:/${this._privateVars.currentDir.slice(1).join("/") }`
+    return `${this._privateVars.currentDir[0]}:/${this._privateVars.currentDir.slice(1).join("/") }`
   }
   //! ------------------------------------------------------------
+
+  //! CUSTOM COMMANDS [BUILT-IN + EXTERNAL]
+  enableDefaultCommands() {
+    if(this._privateVars.defaultCommandsEnabled) return;
+    else {
+      let commands: AnswerInterface[] = [
+        {
+          answer: "CMDtest",
+          action: (args) => {
+            console.log(args)
+            return true
+          }
+        }, {
+          answer: "clear",
+          action: () => {
+            this.target.innerHTML = ``
+            return true
+          }
+        }
+
+
+
+
+      ]
+      this._commands = [...this._commands, ...commands]
+    }
+  }
+  addCommand(command: AnswerInterface | AnswerInterface[]) {
+    if (Array.isArray(command)) this._commands = [...this._commands, ...command]
+    else this._commands = [...this._commands, command]
+  }
 }
 
