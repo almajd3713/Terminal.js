@@ -32,8 +32,15 @@ terminal.setPathTree({
     },
     }
 })
-terminal.setPath("D:/mission2")
+terminal.setPath("D")
 terminal.enableDefaultCommands()
+terminal.addFileActions({
+  file: "mission2.txt",
+  action: () => {
+    terminal.print("Ay AY")
+    return true
+  }
+})
 terminal.createEvents("bruh", async (helper, next) => {
   terminal.cmd(">")
 })

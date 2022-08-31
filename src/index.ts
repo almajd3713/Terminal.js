@@ -139,8 +139,9 @@ export default class Terminal {
       this._privateVars.currentDir = desiredPath as string[]
     } else throw Error("a directory that was inserted doesn't exist in tree")
   }
-  addFileAction(fileAction: FileAction) {
-    this._privateVars.fileActions.push(fileAction)
+  addFileActions(fileActions: FileAction | []) {
+    if(Array.isArray(fileActions)) fileActions.forEach(fileAct => this._privateVars.fileActions.push(fileAct))
+    else this._privateVars.fileActions.push(fileActions)
   }
   private get prefix() {
     return `${this._privateVars.currentDir[0]}:/${this._privateVars.currentDir.slice(1).join("/") }`
@@ -174,7 +175,15 @@ export default class Terminal {
         }, {
           answer: "cd",
           action: (args) => {
-            let newDir = [...this._privateVars.currentDir, ...util.pathReader(args[0])] 
+            let goUps = util.pathReader(args[0])
+            goUps = goUps.filter(dir => {
+              if (dir === "..") {
+                console.log("bruh")
+                if (this._privateVars.currentDir.length > 1) this._privateVars.currentDir.pop()
+                return false
+              } else return true
+            })
+            let newDir = [...this._privateVars.currentDir, ...goUps]
             if (this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, newDir))) {
               let newDirObj = util.findPathObjByPathArr(this._privateVars.tree, newDir)
               if(typeof newDirObj === "object") this.setPath(newDir)
@@ -195,7 +204,12 @@ export default class Terminal {
               })
               if(fileFound) {
                 let fileAction = this._privateVars.fileActions.find(act => act.file === args[0])
-                if(fileAction) fileAction.action(args.slice(1))
+                if(fileAction) {
+                  let returnToCmd: boolean  = false
+                  returnToCmd = fileAction.action(args.slice(1)) || false
+                  return returnToCmd
+                }
+                
                 else this.print("this file is locked")
               }
               else this.print("file not found or is a directory. Consider using \"cd\" if it exists")

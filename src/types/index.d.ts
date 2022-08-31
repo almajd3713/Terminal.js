@@ -36,5 +36,5 @@ export type InfiniteArray<T> = Array<InfiniteArray<T>|T>
 
 export interface FileAction {
   file: string
-  action: (args?: any | any[]) => void
+  action: (args?: any | any[]) => boolean | void
 }
