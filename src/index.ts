@@ -228,9 +228,12 @@ export default class Terminal {
         }, {
           answer: "help",
           description: "shows this list",
-          action: (args) => {
+          action: () => {
+            let longestLength = this._commands.reduce((prev, current) => 
+              prev.answer.length >= current.answer.length ? prev : current 
+            ).answer.length
             this._commands.forEach(command => {
-              this.print(`${command.answer}${command.description ? `: ${command.description}` : ""}`)
+              this.print(`${command.answer}${command.description ? `:${"&nbsp;".repeat(longestLength - command.answer.length)}${command.description}` : ""}`)
             })
             return true
           }
