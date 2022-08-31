@@ -147,5 +147,10 @@ findPathObjByPathArr(tree: Path, pathArr: string[]) {
     }
   }
   return recursiveSearch(finalPathObj, pathArr, 0)
+},
+async asyncRun(func:(...args) => boolean | Promise<boolean>, callbackOnYes: (answer:boolean) => void, callbackOnNo?: () => void) {
+  let answer = await func()
+  if(answer) callbackOnYes(answer)
+  else if(callbackOnNo) callbackOnNo()
 }
 }

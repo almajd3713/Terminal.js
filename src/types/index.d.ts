@@ -26,7 +26,7 @@ export type ElementTypes = "print" | "input"
 
 export interface AnswerInterface {
   answer: string
-  action: (args?: any | any[]) => boolean | void
+  action: (args?: any | any[], helper?: any) => boolean | Promise<boolean>
 }
 export interface Path {
   [path: string]: string | Path
@@ -36,5 +36,5 @@ export type InfiniteArray<T> = Array<InfiniteArray<T>|T>
 
 export interface FileAction {
   file: string
-  action: (args?: any | any[]) => boolean | void
+  action: (args?: any | any[], helper?: any) => boolean | Promise<boolean>
 }

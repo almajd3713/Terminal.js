@@ -100,7 +100,7 @@ export default class Terminal {
     let input = el.querySelector("input")
     input.focus()
     input.classList.add("isFocused")
-    el.addEventListener("submit", e => {
+    el.addEventListener("submit", async e => {
       e.preventDefault()
       input.disabled = true
       input.classList.remove("isFocused")
@@ -110,7 +110,7 @@ export default class Terminal {
         let args = val.split(/\s+/g).slice(1)
         let desiredCommand = this._commands.find(com => com.answer === command)
         if(desiredCommand) {
-          let doCmd = desiredCommand.action(args)
+          let doCmd = await desiredCommand.action(args, this._createEventUtil)
           if(doCmd) this.cmd(pre)
         }
         else if (val.match(/^\s*$/g)) {
@@ -181,7 +181,7 @@ export default class Terminal {
                 console.log("bruh")
                 if (this._privateVars.currentDir.length > 1) this._privateVars.currentDir.pop()
                 return false
-              } else return true
+              } return true
             })
             let newDir = [...this._privateVars.currentDir, ...goUps]
             if (this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, newDir))) {
@@ -194,7 +194,7 @@ export default class Terminal {
         },
         {
           "answer": "open",
-          action: (args) => {
+          action: async(args) => {
             let fileDir = [...this._privateVars.currentDir, ...util.pathReader(args[0])]
             if (this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, fileDir))) {
               let thisDir = util.findPathObjByPathArr(this._privateVars.tree, this._privateVars.currentDir)
@@ -205,22 +205,23 @@ export default class Terminal {
               if(fileFound) {
                 let fileAction = this._privateVars.fileActions.find(act => act.file === args[0])
                 if(fileAction) {
-                  let returnToCmd: boolean  = false
-                  returnToCmd = fileAction.action(args.slice(1)) || false
+                  let returnToCmd = false
+                  returnToCmd = await fileAction.action(args.slice(1), this._createEventUtil)
                   return returnToCmd
                 }
                 
-                else this.print("this file is locked")
+                else {
+                  this.print("this file is locked")
+                  return true
+                }
               }
-              else this.print("file not found or is a directory. Consider using \"cd\" if it exists")
+              else {
+                this.print("file not found or is a directory. Consider using \"cd\" if it exists")
+                return true
+              }
             }
-            return true
           }
         }
-
-
-
-
       ]
       this._commands = [...this._commands, ...commands]
     }
@@ -229,5 +230,9 @@ export default class Terminal {
     if (Array.isArray(command)) this._commands = [...this._commands, ...command]
     else this._commands = [...this._commands, command]
   }
+  //! ------------------------------------------------------------
+
+  //! USERS SYSTEM
+
 }
 

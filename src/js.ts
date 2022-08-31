@@ -32,16 +32,29 @@ terminal.setPathTree({
     },
     }
 })
-terminal.setPath("D")
+terminal.setPath("D:/mission2")
 terminal.enableDefaultCommands()
 terminal.addFileActions({
   file: "mission2.txt",
-  action: () => {
+  action: async(args, helper) => {
+    await helper.sleep(2000)
     terminal.print("Ay AY")
     return true
   }
 })
-terminal.createEvents("bruh", async (helper, next) => {
+terminal.addCommand({
+  answer: "bruh",
+  async action(args, helper) {
+    terminal.print("started at t-0")
+    await helper.sleep(2000)
+    terminal.print("this is at t-2")
+    await helper.sleep(3000)
+    terminal.print("done !")
+    return true
+  }
+})
+
+terminal.createEvents("bruh", (helper, next) => {
   terminal.cmd(">")
 })
 
