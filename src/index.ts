@@ -1,5 +1,5 @@
 
-import { AnswerInterface, EventsInterface, InfiniteArray, Path, TerminalInterface } from "./types"
+import type { AnswerInterface, EventsInterface, InfiniteArray, Path, TerminalInterface, FileAction } from "./types"
 import { util } from "./util.js"
 
 export default class Terminal {
@@ -12,7 +12,8 @@ export default class Terminal {
     tree: {} as Path,
     treeArr: [] as InfiniteArray<string>,
     currentDir: [] as string[],
-    defaultCommandsEnabled: false
+    defaultCommandsEnabled: false,
+    fileActions: [] as FileAction[]
   }
   private _commands: AnswerInterface[] = []
   private _events: EventsInterface = {
@@ -88,7 +89,7 @@ export default class Terminal {
   }
   //! ------------------------------------------------------------
 
-  //! DIRECTORY MANAGEMENT
+  //! DIRECTORY/FILE SYSTEM
   cmd(pre?: string) {
     if(!pre) pre = ">"
     let el = util.genElement("input", { textContent: `${this.prefix}${pre}`})
@@ -131,12 +132,15 @@ export default class Terminal {
     this._privateVars.tree = path
     this._privateVars.treeArr = util.pathGen(path)
   }
-  setPath(path: string) {
-    let newPath = util.pathReader(path)
+  setPath(path: string | string[]) {
+    let newPath = Array.isArray(path) ? path : util.pathReader(path)
     let desiredPath = this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, newPath))
     if(desiredPath) {
       this._privateVars.currentDir = desiredPath as string[]
     } else throw Error("a directory that was inserted doesn't exist in tree")
+  }
+  addFileAction(fileAction: FileAction) {
+    this._privateVars.fileActions.push(fileAction)
   }
   private get prefix() {
     return `${this._privateVars.currentDir[0]}:/${this._privateVars.currentDir.slice(1).join("/") }`
@@ -158,6 +162,44 @@ export default class Terminal {
           answer: "clear",
           action: () => {
             this.target.innerHTML = ``
+            return true
+          }
+        }, {
+          answer: "ls",
+          action: () => {
+            let dir = util.findPathObjByPathArr(this._privateVars.tree, this._privateVars.currentDir)
+            this.print(Object.keys(dir).map(subdir => typeof dir[subdir] === "object" ? `${subdir}(folder)` : dir[subdir]).join("   "))
+            return true
+          }
+        }, {
+          answer: "cd",
+          action: (args) => {
+            let newDir = [...this._privateVars.currentDir, ...util.pathReader(args[0])] 
+            if (this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, newDir))) {
+              let newDirObj = util.findPathObjByPathArr(this._privateVars.tree, newDir)
+              if(typeof newDirObj === "object") this.setPath(newDir)
+              else this.print("this is a file !")
+            } else this.print("this path is invalid !")
+            return true
+          }
+        },
+        {
+          "answer": "open",
+          action: (args) => {
+            let fileDir = [...this._privateVars.currentDir, ...util.pathReader(args[0])]
+            if (this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, fileDir))) {
+              let thisDir = util.findPathObjByPathArr(this._privateVars.tree, this._privateVars.currentDir)
+              let fileFound = false
+              Object.keys(thisDir).forEach(fileKey => {
+                if(thisDir[fileKey] === args[0]) fileFound = true
+              })
+              if(fileFound) {
+                let fileAction = this._privateVars.fileActions.find(act => act.file === args[0])
+                if(fileAction) fileAction.action(args.slice(1))
+                else this.print("this file is locked")
+              }
+              else this.print("file not found or is a directory. Consider using \"cd\" if it exists")
+            }
             return true
           }
         }

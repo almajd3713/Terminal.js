@@ -21,7 +21,10 @@ terminal.setPathTree({
     },
     mission2: {
       mission2: "mission2.txt",
-      execute2: "execute2.py"
+      execute2: {
+        bruh: "Aloo",
+        Hello: "there !"
+      }
     },
     mission3: {
       mission3: "mission3.txt",

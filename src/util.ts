@@ -129,5 +129,23 @@ pathGen(tree: Path) {
   }
   arrGen(tree, [])
   return treeArr
+},
+findPathObjByPathArr(tree: Path, pathArr: string[]) {
+  let finalPathObj: Path = tree
+  let recursiveSearch = (obj: Path, arr: any[], i: number) => {
+    for(const [key, value] of Object.entries(obj)) {
+      if(arr[i] && key === arr[i]) {
+        if(typeof value === "object" && Object.entries(value).length) {
+          finalPathObj = value
+          if(!arr[i + 1]) {
+            return value
+          }
+          let result = recursiveSearch(finalPathObj, arr, i + 1)
+          if(result) return result as Path
+        }
+      } 
+    }
+  }
+  return recursiveSearch(finalPathObj, pathArr, 0)
 }
 }
