@@ -1,5 +1,5 @@
 
-import type { AnswerInterface, EventsInterface, InfiniteArray, Path, TerminalInterface, FileAction } from "./types"
+import type { AnswerInterface, EventsInterface, InfiniteArray, Path, TerminalInterface, FileAction, CommandsInterface } from "./types"
 import { util } from "./util.js"
 
 export default class Terminal {
@@ -15,7 +15,7 @@ export default class Terminal {
     defaultCommandsEnabled: false,
     fileActions: [] as FileAction[]
   }
-  private _commands: AnswerInterface[] = []
+  private _commands: CommandsInterface[] = []
   private _events: EventsInterface = {
     default: {
       pointer: 0,
@@ -152,7 +152,7 @@ export default class Terminal {
   enableDefaultCommands() {
     if(this._privateVars.defaultCommandsEnabled) return;
     else {
-      let commands: AnswerInterface[] = [
+      let commands: CommandsInterface[] = [
         {
           answer: "CMDtest",
           action: (args) => {
@@ -161,12 +161,14 @@ export default class Terminal {
           }
         }, {
           answer: "clear",
+          description: "clears the console",
           action: () => {
             this.target.innerHTML = ``
             return true
           }
         }, {
           answer: "ls",
+          description: "displays all current files/folders in directory",
           action: () => {
             let dir = util.findPathObjByPathArr(this._privateVars.tree, this._privateVars.currentDir)
             this.print(Object.keys(dir).map(subdir => typeof dir[subdir] === "object" ? `${subdir}(folder)` : dir[subdir]).join("   "))
@@ -174,6 +176,7 @@ export default class Terminal {
           }
         }, {
           answer: "cd",
+          description: "allows for movement in directory tree",
           action: (args) => {
             let goUps = util.pathReader(args[0])
             goUps = goUps.filter(dir => {
@@ -193,7 +196,8 @@ export default class Terminal {
           }
         },
         {
-          "answer": "open",
+          answer: "open",
+          description: "opens a file in the current directory",
           action: async(args) => {
             let fileDir = [...this._privateVars.currentDir, ...util.pathReader(args[0])]
             if (this._privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, fileDir))) {
@@ -220,6 +224,15 @@ export default class Terminal {
                 return true
               }
             }
+          }
+        }, {
+          answer: "help",
+          description: "shows this list",
+          action: (args) => {
+            this._commands.forEach(command => {
+              this.print(`${command.answer}${command.description ? `: ${command.description}` : ""}`)
+            })
+            return true
           }
         }
       ]
