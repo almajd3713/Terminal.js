@@ -171,7 +171,4 @@ encryptor(mode: "encrypt" | "decrypt", data: string) {
       return decrypted
   }
 },
-getUserPass(user: User) {
-  return util.encryptor("decrypt", user.password)
-}
 }
