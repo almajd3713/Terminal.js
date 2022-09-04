@@ -33,6 +33,7 @@ terminal.setPathTree({
     }
 })
 terminal.setPath("D:/mission2")
+terminal.defaultPaths = ["D:/mission2/mission2.txt"]
 terminal.enableDefaultCommands()
 terminal.addFileActions({
   file: "mission2.txt",
@@ -74,7 +75,7 @@ terminal.addUser({
     dirs: ["D:/mission2/mission2.txt"]
   }
 })
-terminal.setCurrentUser("galunga")
+
 terminal.auth({user: "galunga", command: "open", directory: "D:/mission2"})
 
 terminal.trigger("bruh")

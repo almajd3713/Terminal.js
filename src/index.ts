@@ -18,6 +18,12 @@ export default class Terminal {
   }
   private _commands: CommandsInterface[] = []
   private _defaultPermissions: User["auth"] = {commands: [], dirs: []}
+  set defaultPaths(perms: string[]) {
+    this._defaultPermissions.dirs = [...this._defaultPermissions.dirs, ...perms]
+  } 
+  set defaultCommands(perms: string[]) {
+    this._defaultPermissions.commands = [...this._defaultPermissions.commands, ...perms]
+  }
   private _currentUser: User
   private _events: EventsInterface = {
     default: {
@@ -61,13 +67,12 @@ export default class Terminal {
   print(message:string) {
     let el = util.genElement("print", {textContent: message})
     this.target.appendChild(el)
+    el.scrollIntoView({behavior: "smooth"})
   }
-  input(message:string, answers: AnswerInterface[]) {
+  input(message:string, callback: (answer: string) => void) {
     let el = util.genElement("input", {textContent: message})
     this.target.appendChild(el)
-    this._inputListener(el as HTMLFormElement, answers)
-  }
-  private _inputListener(el: HTMLFormElement, answers: AnswerInterface[]) {
+    el.scrollIntoView({behavior: "smooth"})
     let input = el.querySelector("input")
     input.focus()
     input.classList.add("isFocused")
@@ -75,19 +80,9 @@ export default class Terminal {
       e.preventDefault()
       input.disabled = true
       input.classList.remove("isFocused")
-      if(answers.length) answers.forEach(ans => {
-        let val = input.value
-        if(val === ans.answer) {
-          if(ans.action) ans.action()
-          else console.log("No function is provided")
-        }
-        else if(val.match(/\S/g)) {
-          this.print("prompt does not match expected answers")
-          this.input(el.textContent, answers)
-        } else {
-          this.input(el.textContent, answers)
-        }
-      })
+      let val = input.value
+      if(!val || /\s/.test(val)){this.input(message, callback); return}
+      callback(val)
     })
   }
   //! ------------------------------------------------------------
@@ -181,7 +176,7 @@ export default class Terminal {
           answer: "cd",
           description: "allows for movement in directory tree",
           action: (args) => {
-            if(!args[0]) {this.print("you haven't inserted a path"); return true}
+            if(!args[0]) {this.print("no arguments given"); return true}
             let goUps = util.pathReader(args[0])
             goUps = goUps.filter(dir => {
               if (dir === "..") {
@@ -203,6 +198,7 @@ export default class Terminal {
           answer: "open",
           description: "opens a file in the current directory",
           action: async(args: string[]) => {
+            if(!args[0]) {this.print("no arguments given"); return true}
             let fileDir = [...this.#_privateVars.currentDir, ...util.pathReader(args[0])]
             if (this.#_privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, fileDir))) {
               let thisDir = util.findPathObjByPathArr(this.#_privateVars.tree, this.#_privateVars.currentDir) as string[]
@@ -238,9 +234,55 @@ export default class Terminal {
             })
             return true
           }
+        }, {
+          answer: "login",
+          action: (args, helper) => {
+            console.log("Aye")
+            let loginSequence = () => {
+              this.input("enter username: ", (username) => {
+                this.input("enter password: ", async (password) => {
+                  let user = this.#_privateVars.users.find(user => user.username === username)
+                  if (user && user.password === util.encryptor("encrypt", password)) {
+                    this.print(`logged in as ${username}`)
+                    this._currentUser = user
+                    await helper.sleep(1000)
+                    this.cmd(">")
+                  } else {
+                    this.print("username or don't match")
+                    await helper.sleep(1000)
+                    loginSequence()
+                  }
+                })
+              })
+            }
+            loginSequence()
+            return false
+          }
+        }, {
+          answer: "logout",
+          action: async(args, helper) => {
+            if(!this._currentUser) {
+              this.print("no user is logged in")
+              return true
+            }
+            this._currentUser = undefined
+            this.print("logged out successfuly")
+            await helper.sleep(1000)
+            return true
+          }
+        }, {
+          answer: "session",
+          action: () => {
+            let status = this._currentUser ? this._currentUser.username : false
+            this.print(`status: ${!status ? "not" : ""} logged in`)
+            if(status) this.print(`user logged in: ${status}`)
+
+            return true
+          }
         }
       ]
       this._commands = [...this._commands, ...commands]
+      this.defaultCommands = commands.map(com => com.answer)
     }
   }
   addCommand(command: CommandsInterface | CommandsInterface[]) {
@@ -252,6 +294,7 @@ export default class Terminal {
   //! USERS SYSTEM
   addUser(newUser: User) {
     if(!newUser.auth) newUser.auth = {commands: [], dirs: []}
+    newUser.password = util.encryptor("encrypt", newUser.password)
     this.#_privateVars.users.push(newUser)
   }
   auth(data: authParams): {authDir: boolean, authCommand: boolean} {
@@ -260,8 +303,10 @@ export default class Terminal {
     if (typeof user === "string") user = this.#_privateVars.users.find(us => us.username === user) || this._currentUser
     if(typeof directory === "string") directory = util.pathReader(directory)
 
-    if(command) isAuth.authCommand = !!user.auth.commands.find(command => command === command)
-    if(directory) isAuth.authDir = !!user.auth.dirs.find(dir => util.compareArrayByIndex(util.pathReader(dir), directory as string[]))
+    if(command) isAuth.authCommand = 
+      this._defaultPermissions.commands.length ? !!this._defaultPermissions.commands.find(command => command === command) : user ? !!user.auth.commands.find(command => command === command) : false
+    if(directory) isAuth.authDir = 
+      this._defaultPermissions.dirs.length ? !!this._defaultPermissions.dirs.find(dir => util.compareArrayByIndex(util.pathReader(dir), directory as string[])): user ? !!user.auth.dirs.find(dir => util.compareArrayByIndex(util.pathReader(dir), directory as string[])) : false
 
     return isAuth
   }
