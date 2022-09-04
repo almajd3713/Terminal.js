@@ -41,3 +41,18 @@ export interface FileAction {
   file: string
   action: (args?: any | any[], helper?: any) => boolean | Promise<boolean>
 }
+
+export interface User {
+  username: string
+  password: string
+  auth?: {
+    commands?: string[],
+    dirs?: string[] 
+  }
+}
+
+export interface authParams {
+  user: string | User
+  directory?: string | string[]
+  command?: string
+}

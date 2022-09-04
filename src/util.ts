@@ -1,4 +1,4 @@
-import { CreateNodeProps, ElementTypes, InfiniteArray, Path } from "./types"
+import { CreateNodeProps, ElementTypes, InfiniteArray, Path, User } from "./types"
 
 
 export const util = {
@@ -35,7 +35,7 @@ defaultStyleGen: (id:string) => util.createNode({tag: "style", textContent: `
       #${id} {
         box-sizing: border-box;
         width: 100%;
-        height: 100%;
+        min-height: 100%;
         padding: 1rem;
         color: #109e2a;
         background-color: black;
@@ -148,9 +148,30 @@ findPathObjByPathArr(tree: Path, pathArr: string[]) {
   }
   return recursiveSearch(finalPathObj, pathArr, 0)
 },
-async asyncRun(func:(...args) => boolean | Promise<boolean>, callbackOnYes: (answer:boolean) => void, callbackOnNo?: () => void) {
-  let answer = await func()
-  if(answer) callbackOnYes(answer)
-  else if(callbackOnNo) callbackOnNo()
+encryptor(mode: "encrypt" | "decrypt", data: string) {
+  const count = 8
+  switch (mode) {
+    case "encrypt":
+      let encrypted = data
+      for(let i = 0; i <= count; i++) {
+        encrypted = btoa(encrypted)
+      }
+      return encrypted
+  
+    case "decrypt":
+      let decrypted = data
+      for(let i = 0; i <= count; i++) {
+        try {
+          decrypted = atob(decrypted)
+        } catch (error) {
+          console.error(error)
+          return decrypted
+        }
+      }
+      return decrypted
+  }
+},
+getUserPass(user: User) {
+  return util.encryptor("decrypt", user.password)
 }
 }
