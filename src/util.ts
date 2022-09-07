@@ -1,4 +1,4 @@
-import { CreateNodeProps, ElementTypes, InfiniteArray, Path, User } from "./types"
+import { CreateNodeProps, ElementTypes, InfiniteArray, MessageTypes, Path, User } from "./types"
 
 
 export const util = {
@@ -82,10 +82,26 @@ objectListener(object: Object, action: (value: string) => void) {
   }
   return new Proxy(object, handler)
 },
-genElement(type: ElementTypes, props: CreateNodeProps) {
+genElement(type: ElementTypes, props: CreateNodeProps, messageType: MessageTypes = "default") {
   switch (type) {
     case "print":
-      return util.createNode({ tag: "p", textContent: props.textContent})
+      return util.createNode({ tag: "p", textContent: props.textContent, style: {
+        backgroundColor: 
+          messageType === "error" ? "#d90d0d" :
+          messageType === "warning" ? "#ced416" :
+          "initial",
+        color:
+          messageType !== "default" ? "black" :
+          "inheret"
+      }})
+      // else switch (messageType) {
+      //   case "warning":
+          
+      //     break;
+      
+      //   default:
+      //     break;
+      // }
   
     case "input":
       return util.createNode({

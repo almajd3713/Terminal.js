@@ -1,5 +1,5 @@
 
-import type { EventsInterface, InfiniteArray, Path, TerminalInterface, FileAction, CommandsInterface, User, authParams } from "./types"
+import type { EventsInterface, InfiniteArray, Path, TerminalInterface, FileAction, CommandsInterface, User, authParams, MessageTypes } from "./types"
 import { util } from "./util.js"
 
 export default class Terminal {
@@ -64,8 +64,8 @@ export default class Terminal {
   //! ------------------------------------------------------------
 
   //! COMMON METHODS
-  print(message:string) {
-    let el = util.genElement("print", {textContent: message})
+  print(message:string, type?: MessageTypes) {
+    let el = util.genElement("print", {textContent: message}, type)
     this.target.appendChild(el)
     el.scrollIntoView({behavior: "smooth"})
   }
@@ -116,7 +116,7 @@ export default class Terminal {
           // return;
         }
         else {
-          this.print("this command doesn't exist!")
+          this.print("this command doesn't exist!", "error")
           this.cmd(pre)
         }
       }
@@ -207,13 +207,13 @@ export default class Terminal {
                   let returnToCmd = false
                   returnToCmd = await fileAction.action(args.slice[1], this._createEventUtil)
                   return returnToCmd
-                } else {this.print("this file is corrupted"); return true}
+                } else {this.print("this file is corrupted", "error"); return true}
               } else {
-                if(!auth.authCommand) {this.print("you don't have access to this command"); return true}
-                if(!auth.authDir) {this.print("you don't have access to this file"); return true}
+                if(!auth.authCommand) {this.print("you don't have access to this command", "error"); return true}
+                if(!auth.authDir) {this.print("you don't have access to this file", "error"); return true}
               }
             
-            } else { this.print("this file doesn't exist"); return true }
+            } else { this.print("this file doesn't exist", "error"); return true }
           }
         }, {
           answer: "help",

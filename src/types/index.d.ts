@@ -56,3 +56,5 @@ export interface authParams {
   directory?: string | string[]
   command?: string
 }
+
+type MessageTypes = "default" | "warning" | "error"
