@@ -1,5 +1,5 @@
 
-import type { AnswerInterface, EventsInterface, InfiniteArray, Path, TerminalInterface, FileAction, CommandsInterface, User, authParams } from "./types"
+import type { EventsInterface, InfiniteArray, Path, TerminalInterface, FileAction, CommandsInterface, User, authParams } from "./types"
 import { util } from "./util.js"
 
 export default class Terminal {
@@ -14,9 +14,9 @@ export default class Terminal {
     currentDir: [] as string[],
     defaultCommandsEnabled: false,
     fileActions: [] as FileAction[],
-    users: [] as User[]
+    users: [] as User[],
+    commands: [] as CommandsInterface[]
   }
-  private _commands: CommandsInterface[] = []
   private _defaultPermissions: User["auth"] = {commands: [], dirs: []}
   set defaultPaths(perms: string[]) {
     this._defaultPermissions.dirs = [...this._defaultPermissions.dirs, ...perms]
@@ -103,10 +103,10 @@ export default class Terminal {
       input.disabled = true
       input.classList.remove("isFocused")
       let val = input.value
-      if(this._commands.length) {
+      if(this.#_privateVars.commands.length) {
         let command = val.split(/(\s+)/g)[0]
         let args = val.split(/\s+/g).slice(1)
-        let desiredCommand = this._commands.find(com => com.answer === command)
+        let desiredCommand = this.#_privateVars.commands.find(com => com.answer === command)
         if(desiredCommand) {
           let doCmd = await desiredCommand.action(args, this._createEventUtil)
           if (doCmd) this.cmd(pre)
@@ -180,7 +180,6 @@ export default class Terminal {
             let goUps = util.pathReader(args[0])
             goUps = goUps.filter(dir => {
               if (dir === "..") {
-                console.log("bruh")
                 if (this.#_privateVars.currentDir.length > 1) this.#_privateVars.currentDir.pop()
                 return false
               } return true
@@ -201,35 +200,29 @@ export default class Terminal {
             if(!args[0]) {this.print("no arguments given"); return true}
             let fileDir = [...this.#_privateVars.currentDir, ...util.pathReader(args[0])]
             if (this.#_privateVars.treeArr.find(arr => util.compareArrayByIndex(arr as InfiniteArray<string>, fileDir))) {
-              let thisDir = util.findPathObjByPathArr(this.#_privateVars.tree, this.#_privateVars.currentDir) as string[]
-              let fileFound: boolean
-              Object.keys(thisDir).forEach(fileKey => {
-                if(thisDir[fileKey] === args[0]) fileFound = true
-              })
-              if(fileFound) {
-                let auth = this.auth({user: this._currentUser, command: "open", directory: fileDir})
-                if(auth.authCommand && auth.authDir) {
-                  let fileAction = this.#_privateVars.fileActions.find(act => act.file === args[0])
-                  if (fileAction) {
-                    let returnToCmd = false
-                    returnToCmd = await fileAction.action(args.slice[1], this._createEventUtil)
-                    return returnToCmd
-                  } else {this.print("this file is corrupted"); return true}
-                } else {
-                  if(!auth.authCommand) {this.print("you don't have access to this command"); return true}
-                  if(!auth.authDir) {this.print("you don't have access to this file"); return true}
-                }
-              } else {this.print("this file doesn't exist"); return true}
-            }
+              let auth = this.auth({user: this._currentUser, command: "open", directory: fileDir})
+              if(auth.authCommand && auth.authDir) {
+                let fileAction = this.#_privateVars.fileActions.find(act => act.file === args[0])
+                if (fileAction) {
+                  let returnToCmd = false
+                  returnToCmd = await fileAction.action(args.slice[1], this._createEventUtil)
+                  return returnToCmd
+                } else {this.print("this file is corrupted"); return true}
+              } else {
+                if(!auth.authCommand) {this.print("you don't have access to this command"); return true}
+                if(!auth.authDir) {this.print("you don't have access to this file"); return true}
+              }
+            
+            } else { this.print("this file doesn't exist"); return true }
           }
         }, {
           answer: "help",
           description: "shows this list",
           action: () => {
-            let longestLength = this._commands.reduce((prev, current) => 
+            let longestLength = this.#_privateVars.commands.reduce((prev, current) => 
               prev.answer.length >= current.answer.length ? prev : current 
             ).answer.length
-            this._commands.forEach(command => {
+            this.#_privateVars.commands.forEach(command => {
               this.print(`${command.answer}${command.description ? `:${"&nbsp;".repeat(longestLength - command.answer.length + 1)}${command.description}` : ""}`)
             })
             return true
@@ -237,7 +230,6 @@ export default class Terminal {
         }, {
           answer: "login",
           action: (args, helper) => {
-            console.log("Aye")
             let loginSequence = () => {
               this.input("enter username: ", (username) => {
                 this.input("enter password: ", async (password) => {
@@ -281,13 +273,13 @@ export default class Terminal {
           }
         }
       ]
-      this._commands = [...this._commands, ...commands]
+      this.#_privateVars.commands = [...this.#_privateVars.commands, ...commands]
       this.defaultCommands = commands.map(com => com.answer)
     }
   }
   addCommand(command: CommandsInterface | CommandsInterface[]) {
-    if (Array.isArray(command)) this._commands = [...this._commands, ...command]
-    else this._commands = [...this._commands, command]
+    if (Array.isArray(command)) this.#_privateVars.commands = [...this.#_privateVars.commands, ...command]
+    else this.#_privateVars.commands = [...this.#_privateVars.commands, command]
   }
   //! ------------------------------------------------------------
 
@@ -313,6 +305,27 @@ export default class Terminal {
   setCurrentUser(user: string) {
     let desiredUser = this.#_privateVars.users.find(us => us.username === user)
     this._currentUser = desiredUser
+  }
+  //! ------------------------------------------------------------
+
+  //! MISC
+  reset(full?: boolean) {
+    this.target.innerHTML = ``
+    if(full) {
+      this.#_privateVars = {
+        tree: {},
+        treeArr: [],
+        currentDir: [],
+        defaultCommandsEnabled: false,
+        fileActions: [],
+        users: [],
+        commands: []
+      }
+      this._events = {}
+      this._currentUser = {} as User
+      this._defaultActions = []
+      this._defaultPermissions = {}
+    }
   }
 }
 

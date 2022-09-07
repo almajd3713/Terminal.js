@@ -38,13 +38,16 @@ terminal.enableDefaultCommands()
 terminal.addFileActions({
   file: "mission2.txt",
   action: async(args, helper) => {
-    for(let i = 1; i <= 25; i++) {
-      await helper.sleep(50)
-      terminal.print(`loading...${i * 4}%`)
-    }
+    // for(let i = 1; i <= 25; i++) {
+    //   await helper.sleep(50)
+    //   terminal.print(`loading...${i * 4}%`)
+    // }
+    // await helper.sleep(1000)
+    // terminal.print("OYA!")
+    // return true
     await helper.sleep(1000)
-    terminal.print("OYA!")
-    return true
+    terminal.trigger("floppa")
+    return false
   }
 })
 terminal.addCommand({
@@ -65,18 +68,12 @@ terminal.createEvents("bruh", (helper, next) => {
 })
 
 terminal.createEvents("floppa", (helper, next) => {
-  console.log("Bruh")
+  terminal.reset(true)
 })
 terminal.addUser({
   username: "galunga",
   password: "aloha",
-  auth: {
-    commands: ["open"],
-    dirs: ["D:/mission2/mission2.txt"]
-  }
 })
-
-terminal.auth({user: "galunga", command: "open", directory: "D:/mission2"})
 
 terminal.trigger("bruh")
 
