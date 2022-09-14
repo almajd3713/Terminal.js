@@ -346,5 +346,10 @@ export default class Terminal {
       this._defaultPermissions = {}
     }
   }
+  execute(command: string, args?: string[]) {
+    let desiredCommand = this.#_privateVars.commands.find(pred => pred.answer === command)
+    desiredCommand ? desiredCommand.action(args, this._createEventUtil) :
+    console.error(`command ${command} doesn't exist!`)
+  }
 }
 
