@@ -6,7 +6,14 @@ export default class Terminal {
 
   //! CORE SYSTEM
   private _createEventUtil = {
-    sleep: util.sleep
+    sleep: util.sleep,
+    setVariable: (v: string, val: boolean = true) => {
+      if(Object.keys(this._vars).find(pred => pred === v)) this._vars[v] = val
+      else console.error(`variable ${v} doesn't exist`)
+    },
+    varIsTrue: (v: string | string[]) => 
+      Array.isArray(v) ? v.every(pred => this._vars[pred]) :
+      this._vars[v]
   }
   #_privateVars = {
     tree: {} as Path,
@@ -18,6 +25,15 @@ export default class Terminal {
     commands: [] as CommandsInterface[]
   }
   private _defaultPermissions: User["auth"] = {commands: [], dirs: []}
+  private _vars: {[variable:string]: boolean} = {}
+  createVariables(v: string | string[]) {
+    let obj = {}
+    if(Array.isArray(v)) {
+      v.forEach(va => obj[va] = false)
+    } else obj[v] = false
+    Object.assign(this._vars, obj)
+    console.log(this._vars)
+  }
   set defaultPaths(perms: string[]) {
     this._defaultPermissions.dirs = [...this._defaultPermissions.dirs, ...perms]
   } 
@@ -37,6 +53,8 @@ export default class Terminal {
     this.target = props.target
     this._defaultStyle()
     if (props.style) (this.target.style as typeof props.style) = props.style
+    this.setPathTree({C: "C"})
+    this.setPath("C")
   }
   private _eventTriggerHandler(event: typeof this._events[string]) {
     if (event && event.actions) event.actions[0]()
@@ -45,6 +63,7 @@ export default class Terminal {
     if (!document.querySelector("[data-terminal-style")) document.querySelector("head").appendChild(util.defaultStyleGen(this.target.id))
   }
   createEvents(when: string, action: (util: typeof this._createEventUtil, next: Function) => void) {
+    if(when.match(/\s/g) || !when.length) when = "default"
     if (!this._events[when]) this._events[when] = {
       pointer: 0,
       actions: []
