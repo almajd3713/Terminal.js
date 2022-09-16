@@ -5,6 +5,7 @@ let terminal = new Terminal({
 })
 
 terminal.createVariables(["Va", "bruh", "galun"])
+terminal.enableDefaultCommands()
 
 // terminal.createEvents("", async(helper, next) => {
 //   terminal.print("this is a normal message")
@@ -15,8 +16,9 @@ terminal.createVariables(["Va", "bruh", "galun"])
 //   next()
 // })
 
-terminal.createEvents("", async(helper, next) => {
+terminal.createEvents("", () => {
   terminal.cmd(">")
+  terminal.execute("CMDtest brr -wsedf -f as")
 })
 
 terminal.addCommand({

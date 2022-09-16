@@ -170,7 +170,7 @@ encryptor(mode: "encrypt" | "decrypt", data: string) {
     case "encrypt":
       let encrypted = data
       for(let i = 0; i <= count; i++) {
-        encrypted = btoa(encrypted)
+        encrypted = Buffer.from(encrypted, "utf-8").toString("base64")
       }
       return encrypted
   
@@ -178,7 +178,7 @@ encryptor(mode: "encrypt" | "decrypt", data: string) {
       let decrypted = data
       for(let i = 0; i <= count; i++) {
         try {
-          decrypted = atob(decrypted)
+          decrypted = Buffer.from(decrypted, "base64").toString("utf-8")
         } catch (error) {
           console.error(error)
           return decrypted
@@ -187,4 +187,16 @@ encryptor(mode: "encrypt" | "decrypt", data: string) {
       return decrypted
   }
 },
+commandProcessor(str: string) {
+  let command = str.split(/(\s+)/g)[0]
+  let args = str.split(/\s+/g).slice(1)
+  let flags = {}
+  args.forEach(arg => {
+    if(arg.match(/-\S/g)) {
+      let a = args[args.indexOf(arg) + 1]
+      if (a && !a.match(/-\S/g)) flags[arg] = a
+    }
+  })
+  return [command, args, flags]
+}
 }

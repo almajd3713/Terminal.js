@@ -32,7 +32,6 @@ export default class Terminal {
       v.forEach(va => obj[va] = false)
     } else obj[v] = false
     Object.assign(this._vars, obj)
-    console.log(this._vars)
   }
   set defaultPaths(perms: string[]) {
     this._defaultPermissions.dirs = [...this._defaultPermissions.dirs, ...perms]
@@ -123,11 +122,10 @@ export default class Terminal {
       input.classList.remove("isFocused")
       let val = input.value
       if(this.#_privateVars.commands.length) {
-        let command = val.split(/(\s+)/g)[0]
-        let args = val.split(/\s+/g).slice(1)
+        let [command, args, flags] = util.commandProcessor(val)
         let desiredCommand = this.#_privateVars.commands.find(com => com.answer === command)
         if(desiredCommand) {
-          let doCmd = await desiredCommand.action(args, this._createEventUtil)
+          let doCmd = await desiredCommand.action(args, flags, this._createEventUtil)
           if (doCmd) this.cmd(pre)
         }
         else if (val.match(/^\s*$/g)) {
@@ -172,8 +170,9 @@ export default class Terminal {
       let commands: CommandsInterface[] = [
         {
           answer: "CMDtest",
-          action: (args) => {
+          action: (args, flags, helper) => {
             console.log(args)
+            console.log(flags)
             return true
           }
         }, {
@@ -248,7 +247,7 @@ export default class Terminal {
           }
         }, {
           answer: "login",
-          action: (args, helper) => {
+          action: (l, m, helper) => {
             let loginSequence = () => {
               this.input("enter username: ", (username) => {
                 this.input("enter password: ", async (password) => {
@@ -346,9 +345,10 @@ export default class Terminal {
       this._defaultPermissions = {}
     }
   }
-  execute(command: string, args?: string[]) {
+  execute(str: string) {
+    let [command, args, flags] = util.commandProcessor(str)
     let desiredCommand = this.#_privateVars.commands.find(pred => pred.answer === command)
-    desiredCommand ? desiredCommand.action(args, this._createEventUtil) :
+    desiredCommand ? desiredCommand.action(args, flags, this._createEventUtil) :
     console.error(`command ${command} doesn't exist!`)
   }
 }

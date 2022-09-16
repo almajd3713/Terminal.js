@@ -26,7 +26,7 @@ export type ElementTypes = "print" | "input"
 
 export interface AnswerInterface {
   answer: string
-  action: (args?: any | any[], helper?: any) => boolean | Promise<boolean> | void
+  action: (args?: any | any[], flags?: any | any[], helper?: any) => boolean | Promise<boolean> | void
 }
 export interface CommandsInterface extends AnswerInterface {
   description?: string
