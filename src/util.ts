@@ -195,6 +195,10 @@ commandProcessor(str: string) {
     if(arg.match(/-\S/g)) {
       let a = args[args.indexOf(arg) + 1]
       if (a && !a.match(/-\S/g)) flags[arg] = a
+      a ? 
+        !a.match(/-\S/g) ? flags[arg] = a :
+        flags[arg] = null
+      : 0;
     }
   })
   return [command, args, flags]
